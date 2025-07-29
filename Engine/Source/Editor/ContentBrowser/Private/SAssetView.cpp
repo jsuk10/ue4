@@ -58,7 +58,6 @@
 #include "ContentBrowserDataSubsystem.h"
 #include "ContentBrowserDataLegacyBridge.h"
 #include "ContentBrowserDataDragDropOp.h"
-#include <Settings/ProjectPackagingSettings.h>
 
 #define LOCTEXT_NAMESPACE "ContentBrowser"
 #define MAX_THUMBNAIL_SIZE 4096
@@ -3163,17 +3162,15 @@ TSharedRef<ITableRow> SAssetView::MakeTileViewWidget(TSharedPtr<FAssetViewItem> 
 	VisibleItems.Add(AssetItem);
 	bPendingUpdateThumbnails = true;
 
-	TSharedPtr< STableRow<TSharedPtr<FAssetViewItem>> > TableRowWidget;
-	TSharedPtr<SAssetTileItem> Item;
-
 	if (AssetItem->IsFolder())
 	{
+		TSharedPtr< STableRow<TSharedPtr<FAssetViewItem>> > TableRowWidget;
 		SAssignNew( TableRowWidget, STableRow<TSharedPtr<FAssetViewItem>>, OwnerTable )
 			.Style( FEditorStyle::Get(), "ContentBrowser.AssetListView.TableRow" )
 			.Cursor( bAllowDragging ? EMouseCursor::GrabHand : EMouseCursor::Default )
 			.OnDragDetected( this, &SAssetView::OnDraggingAssetItem );
 
-		Item =
+		TSharedRef<SAssetTileItem> Item =
 			SNew(SAssetTileItem)
 			.AssetItem(AssetItem)
 			.ItemWidth(this, &SAssetView::GetTileViewItemWidth)
@@ -3185,6 +3182,9 @@ TSharedRef<ITableRow> SAssetView::MakeTileViewWidget(TSharedPtr<FAssetViewItem> 
 			.HighlightText( HighlightedText )
 			.IsSelected( FIsSelected::CreateSP(TableRowWidget.Get(), &STableRow<TSharedPtr<FAssetViewItem>>::IsSelectedExclusively) );
 
+		TableRowWidget->SetContent(Item);
+
+		return TableRowWidget.ToSharedRef();
 	}
 	else
 	{
@@ -3197,13 +3197,13 @@ TSharedRef<ITableRow> SAssetView::MakeTileViewWidget(TSharedPtr<FAssetViewItem> 
 			AssetThumbnail->GetViewportRenderTargetTexture(); // Access the texture once to trigger it to render
 		}
 
-		
+		TSharedPtr< STableRow<TSharedPtr<FAssetViewItem>> > TableRowWidget;
 		SAssignNew( TableRowWidget, STableRow<TSharedPtr<FAssetViewItem>>, OwnerTable )
 		.Style(FEditorStyle::Get(), "ContentBrowser.AssetListView.TableRow")
 		.Cursor( bAllowDragging ? EMouseCursor::GrabHand : EMouseCursor::Default )
 		.OnDragDetected( this, &SAssetView::OnDraggingAssetItem );
 
-		Item =
+		TSharedRef<SAssetTileItem> Item =
 			SNew(SAssetTileItem)
 			.AssetThumbnail(AssetThumbnail)
 			.AssetItem(AssetItem)
@@ -3225,60 +3225,10 @@ TSharedRef<ITableRow> SAssetView::MakeTileViewWidget(TSharedPtr<FAssetViewItem> 
 			.OnVisualizeAssetToolTip( OnVisualizeAssetToolTip )
 			.OnAssetToolTipClosing( OnAssetToolTipClosing );
 
+		TableRowWidget->SetContent(Item);
+
+		return TableRowWidget.ToSharedRef();
 	}
-
-	TSharedRef<SWidget> Thumbnail = SNew(SOverlay)
-		+ SOverlay::Slot()
-		[
-			Item.ToSharedRef()
-		]
-		+ SOverlay::Slot()
-		.HAlign(HAlign_Right)
-		.VAlign(VAlign_Top)
-		.Padding(FMargin(2.0f)) // 위치 조정
-		[
-			// 조건에 따라 보일 이미지
-			SNew(SImage)
-				.Image(FEditorStyle::GetBrush("Icons.Cross")) // 커스텀 아이콘
-				.Visibility_Lambda([AssetItem]()
-					{
-						static TArray<FString> CachedNeverCookDirs;
-						static bool bIsInitialized = false;
-
-						if (!bIsInitialized)
-						{
-							const FString SectionName = TEXT("/Script/UnrealEd.ProjectPackagingSettings");
-
-							const UProjectPackagingSettings* PackagingSettings = GetDefault<UProjectPackagingSettings>();
-							const TArray<FDirectoryPath>& NeverCookDirs = PackagingSettings->DirectoriesToNeverCook;
-							for (const FDirectoryPath& DirectoryPath : PackagingSettings->DirectoriesToNeverCook)
-							{
-								CachedNeverCookDirs.Add(DirectoryPath.Path);
-							}
-
-							bIsInitialized = true;
-						}
-
-						if (AssetItem.IsValid())
-						{
-							const FString ItemPath = AssetItem->GetItem().GetVirtualPath().ToString(); // 예: "/Game/Assets/MyAsset"
-
-							for (const FString& NeverCookDir : CachedNeverCookDirs)
-							{
-								if (ItemPath.StartsWith(NeverCookDir))
-								{
-									return EVisibility::Visible;
-								}
-							}
-						}
-
-						return EVisibility::Collapsed;
-					})
-		];
-
-	TableRowWidget->SetContent(Thumbnail);
-
-	return TableRowWidget.ToSharedRef();
 }
 
 TSharedRef<ITableRow> SAssetView::MakeColumnViewWidget(TSharedPtr<FAssetViewItem> AssetItem, const TSharedRef<STableViewBase>& OwnerTable)
