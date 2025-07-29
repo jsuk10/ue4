@@ -3226,7 +3226,22 @@ TSharedRef<ITableRow> SAssetView::MakeTileViewWidget(TSharedPtr<FAssetViewItem> 
 
 	}
 
-	TableRowWidget->SetContent(Item.ToSharedRef());
+	TSharedRef<SWidget> Overlay = SNew(SOverlay)
+		+ SOverlay::Slot()
+		[
+			Item.ToSharedRef()
+		]
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Right)
+		.VAlign(VAlign_Top)
+		.Padding(FMargin(2.0f)) // ?œ„ì¹? ì¡°ì •
+		[
+			// ì¡°ê±´?— ?”°?¼ ë³´ì¼ ?´ë¯¸ì??
+			SNew(SImage)
+				.Image(FEditorStyle::GetBrush("Icons.Cross")) // ì»¤ìŠ¤??? ?•„?´ì½?
+		];
+
+	TableRowWidget->SetContent(Overlay);
 
 	return TableRowWidget.ToSharedRef();
 }
