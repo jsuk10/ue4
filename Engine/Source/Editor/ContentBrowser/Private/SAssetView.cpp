@@ -58,6 +58,7 @@
 #include "ContentBrowserDataSubsystem.h"
 #include "ContentBrowserDataLegacyBridge.h"
 #include "ContentBrowserDataDragDropOp.h"
+#include <Settings/ProjectPackagingSettings.h>
 
 #define LOCTEXT_NAMESPACE "ContentBrowser"
 #define MAX_THUMBNAIL_SIZE 4096
@@ -3226,22 +3227,49 @@ TSharedRef<ITableRow> SAssetView::MakeTileViewWidget(TSharedPtr<FAssetViewItem> 
 
 	}
 
-	TSharedRef<SWidget> Overlay = SNew(SOverlay)
-		+ SOverlay::Slot()
-		[
-			Item.ToSharedRef()
-		]
-		+ SOverlay::Slot()
-		.HAlign(HAlign_Right)
-		.VAlign(VAlign_Top)
-		.Padding(FMargin(2.0f)) // ?úÑÏπ? Ï°∞Ï†ï
-		[
-			// Ï°∞Í±¥?óê ?î∞?ùº Î≥¥Ïùº ?ù¥ÎØ∏Ï??
-			SNew(SImage)
-				.Image(FEditorStyle::GetBrush("Icons.Cross")) // Ïª§Ïä§??? ?ïÑ?ù¥ÏΩ?
-		];
+	bool ContainNevercook = false;
+	TArray<FString> CachedNeverCookDirs;
+	const FString SectionName = TEXT("/Script/UnrealEd.ProjectPackagingSettings");
 
-	TableRowWidget->SetContent(Overlay);
+	if (AssetItem.IsValid())
+	{
+		const FString ItemPath = AssetItem->GetItem().GetVirtualPath().ToString();
+
+		const UProjectPackagingSettings* PackagingSettings = GetDefault<UProjectPackagingSettings>();
+		const TArray<FDirectoryPath>& NeverCookDirs = PackagingSettings->DirectoriesToNeverCook;
+		for (const FDirectoryPath& DirectoryPath : PackagingSettings->DirectoriesToNeverCook)
+		{
+			if (ItemPath.StartsWith(DirectoryPath.Path))
+			{
+				ContainNevercook = true;
+				break;
+			}
+		}
+	}
+
+	if (ContainNevercook)
+	{
+		TSharedRef<SWidget> Overlay = SNew(SOverlay)
+			+ SOverlay::Slot()
+			[
+				Item.ToSharedRef()
+			]
+			+ SOverlay::Slot()
+			.HAlign(HAlign_Right)
+			.VAlign(VAlign_Top)
+			.Padding(FMargin(2.0f)) // ÏúÑÏπò Ï°∞Ï†ï
+			[
+				// Ï°∞Í±¥Ïóê Îî∞Îùº Î≥¥Ïùº Ïù¥ÎØ∏ÏßÄ
+				SNew(SImage)
+					.Image(FEditorStyle::GetBrush("Icons.Cross")) // Ïª§Ïä§ÌÖÄ ÏïÑÏù¥ÏΩò
+			];
+
+		TableRowWidget->SetContent(Overlay);
+	}
+	else
+	{
+		TableRowWidget->SetContent(Item.ToSharedRef());
+	}
 
 	return TableRowWidget.ToSharedRef();
 }
