@@ -3228,18 +3228,30 @@ TSharedRef<ITableRow> SAssetView::MakeTileViewWidget(TSharedPtr<FAssetViewItem> 
 	}
 
 	bool ContainNevercook = false;
-	TArray<FString> CachedNeverCookDirs;
+	static TArray<FString> CachedNeverCookDirs;
+	static bool bIsInitialized = false;
+
 	const FString SectionName = TEXT("/Script/UnrealEd.ProjectPackagingSettings");
+
+	if (bIsInitialized == false)
+	{
+		const UProjectPackagingSettings* PackagingSettings = GetDefault<UProjectPackagingSettings>();
+		const TArray<FDirectoryPath>& NeverCookDirs = PackagingSettings->DirectoriesToNeverCook;
+		for (const FDirectoryPath& DirectoryPath : PackagingSettings->DirectoriesToNeverCook)
+		{
+			CachedNeverCookDirs.Add(DirectoryPath.Path);
+		}
+
+		bIsInitialized = true;
+	}
 
 	if (AssetItem.IsValid())
 	{
 		const FString ItemPath = AssetItem->GetItem().GetVirtualPath().ToString();
 
-		const UProjectPackagingSettings* PackagingSettings = GetDefault<UProjectPackagingSettings>();
-		const TArray<FDirectoryPath>& NeverCookDirs = PackagingSettings->DirectoriesToNeverCook;
-		for (const FDirectoryPath& DirectoryPath : PackagingSettings->DirectoriesToNeverCook)
+		for (const FString& NeverCookDir : CachedNeverCookDirs)
 		{
-			if (ItemPath.StartsWith(DirectoryPath.Path))
+			if (ItemPath.StartsWith(NeverCookDir))
 			{
 				ContainNevercook = true;
 				break;
