@@ -3162,15 +3162,17 @@ TSharedRef<ITableRow> SAssetView::MakeTileViewWidget(TSharedPtr<FAssetViewItem> 
 	VisibleItems.Add(AssetItem);
 	bPendingUpdateThumbnails = true;
 
+	TSharedPtr< STableRow<TSharedPtr<FAssetViewItem>> > TableRowWidget;
+	TSharedPtr<SAssetTileItem> Item;
+
 	if (AssetItem->IsFolder())
 	{
-		TSharedPtr< STableRow<TSharedPtr<FAssetViewItem>> > TableRowWidget;
 		SAssignNew( TableRowWidget, STableRow<TSharedPtr<FAssetViewItem>>, OwnerTable )
 			.Style( FEditorStyle::Get(), "ContentBrowser.AssetListView.TableRow" )
 			.Cursor( bAllowDragging ? EMouseCursor::GrabHand : EMouseCursor::Default )
 			.OnDragDetected( this, &SAssetView::OnDraggingAssetItem );
 
-		TSharedRef<SAssetTileItem> Item =
+		Item =
 			SNew(SAssetTileItem)
 			.AssetItem(AssetItem)
 			.ItemWidth(this, &SAssetView::GetTileViewItemWidth)
@@ -3182,9 +3184,6 @@ TSharedRef<ITableRow> SAssetView::MakeTileViewWidget(TSharedPtr<FAssetViewItem> 
 			.HighlightText( HighlightedText )
 			.IsSelected( FIsSelected::CreateSP(TableRowWidget.Get(), &STableRow<TSharedPtr<FAssetViewItem>>::IsSelectedExclusively) );
 
-		TableRowWidget->SetContent(Item);
-
-		return TableRowWidget.ToSharedRef();
 	}
 	else
 	{
@@ -3197,13 +3196,13 @@ TSharedRef<ITableRow> SAssetView::MakeTileViewWidget(TSharedPtr<FAssetViewItem> 
 			AssetThumbnail->GetViewportRenderTargetTexture(); // Access the texture once to trigger it to render
 		}
 
-		TSharedPtr< STableRow<TSharedPtr<FAssetViewItem>> > TableRowWidget;
+		
 		SAssignNew( TableRowWidget, STableRow<TSharedPtr<FAssetViewItem>>, OwnerTable )
 		.Style(FEditorStyle::Get(), "ContentBrowser.AssetListView.TableRow")
 		.Cursor( bAllowDragging ? EMouseCursor::GrabHand : EMouseCursor::Default )
 		.OnDragDetected( this, &SAssetView::OnDraggingAssetItem );
 
-		TSharedRef<SAssetTileItem> Item =
+		Item =
 			SNew(SAssetTileItem)
 			.AssetThumbnail(AssetThumbnail)
 			.AssetItem(AssetItem)
@@ -3225,10 +3224,11 @@ TSharedRef<ITableRow> SAssetView::MakeTileViewWidget(TSharedPtr<FAssetViewItem> 
 			.OnVisualizeAssetToolTip( OnVisualizeAssetToolTip )
 			.OnAssetToolTipClosing( OnAssetToolTipClosing );
 
-		TableRowWidget->SetContent(Item);
-
-		return TableRowWidget.ToSharedRef();
 	}
+
+	TableRowWidget->SetContent(Item.ToSharedRef());
+
+	return TableRowWidget.ToSharedRef();
 }
 
 TSharedRef<ITableRow> SAssetView::MakeColumnViewWidget(TSharedPtr<FAssetViewItem> AssetItem, const TSharedRef<STableViewBase>& OwnerTable)
