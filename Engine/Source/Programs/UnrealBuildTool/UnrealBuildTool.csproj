@@ -424,7 +424,6 @@
   <ItemGroup>
     <!-- Use of '/**/' in Include path produce duplicate results and warnings when building this project with mono.
          Instead of **, using * at multiple levels - hopefully sufficient to catch all files in practice -->
-
     <!-- Since RecursiveDir is bugged on VS Mac, we use the FullPath, and use Regex to pull out portions of the path to get Platform name -->
     <Compile Include="../../../Platforms/*/Source/Programs/UnrealBuildTool/*.cs">
       <Link>Platform/$([System.Text.RegularExpressions.Regex]::Replace(%(FullPath), '^(.*[\\/]Platforms[\\/])(.+?)[\\/](.*)$', '$2'))/%(Filename)%(Extension)</Link>
@@ -438,7 +437,6 @@
     <Compile Include="../../../Platforms/*/Source/Programs/UnrealBuildTool/*/*/*/*.cs">
       <Link>Platform/$([System.Text.RegularExpressions.Regex]::Replace(%(FullPath), '^(.*[\\/]Platforms[\\/])(.+?)[\\/](.*)$', '$2'))/%(Filename)%(Extension)</Link>
     </Compile>
-
     <!-- Restricted may or may not be in a Platforms dir, so just use the subdir directly, even tho it makes for a messier directory structure for these few files -->
     <Compile Include="../../../Restricted/*/Platforms/*/Source/Programs/UnrealBuildTool/*.cs">
       <Link>Platform/$([System.Text.RegularExpressions.Regex]::Replace(%(FullPath), '^(.*[\\/]Platforms[\\/])(.+?)[\\/](.*)$', '$2'))/%(Filename)%(Extension)</Link>
@@ -452,8 +450,6 @@
     <Compile Include="../../../Restricted/*/Platforms/*/Source/Programs/UnrealBuildTool/*/*/*/*.cs">
       <Link>Platform/$([System.Text.RegularExpressions.Regex]::Replace(%(FullPath), '^(.*[\\/]Platforms[\\/])(.+?)[\\/](.*)$', '$2'))/%(Filename)%(Extension)</Link>
     </Compile>
-
-
     <!-- Restricted may or may not be in a Platforms dir, so just use the subdir directly, even tho it makes for a messier directory structure for these few files -->
     <Compile Include="../../../Restricted/*/Source/Programs/UnrealBuildTool/*.cs">
       <Link>$([System.Text.RegularExpressions.Regex]::Replace(%(FullPath), '^.+?[\\/]UnrealBuildTool[\\/]', ''))</Link>
@@ -468,7 +464,6 @@
       <Link>$([System.Text.RegularExpressions.Regex]::Replace(%(FullPath), '^.+?[\\/]UnrealBuildTool[\\/]', ''))</Link>
     </Compile>
   </ItemGroup>
-  
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
