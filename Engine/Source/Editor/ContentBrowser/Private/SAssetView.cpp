@@ -3274,6 +3274,46 @@ TSharedRef<ITableRow> SAssetView::MakeTileViewWidget(TSharedPtr<FAssetViewItem> 
 				// 조건에 따라 보일 이미지
 				SNew(SImage)
 					.Image(FEditorStyle::GetBrush("Icons.Cross")) // 커스텀 아이콘
+					/*
+					// Visibility제어
+					.Visibility(ContainNevercook ? EVisibility::Visible : EVisibility::Collapsed)
+					// 람다식을 통한 Visibility제어
+					.Visibility_Lambda([AssetItem]()
+						{
+							static TArray<FString> CachedNeverCookDirs;
+							static bool bIsInitialized = false;
+
+							if (!bIsInitialized)
+							{
+								const FString SectionName = TEXT("/Script/UnrealEd.ProjectPackagingSettings");
+
+
+								const UProjectPackagingSettings* PackagingSettings = GetDefault<UProjectPackagingSettings>();
+								const TArray<FDirectoryPath>& NeverCookDirs = PackagingSettings->DirectoriesToNeverCook;
+								for (const FDirectoryPath& DirectoryPath : PackagingSettings->DirectoriesToNeverCook)
+								{
+									CachedNeverCookDirs.Add(DirectoryPath.Path);
+								}
+
+								bIsInitialized = true;
+							}
+
+							if (AssetItem.IsValid())
+							{
+								const FString ItemPath = AssetItem->GetItem().GetVirtualPath().ToString(); // 예: "/Game/Assets/MyAsset"
+
+								for (const FString& NeverCookDir : CachedNeverCookDirs)
+								{
+									if (ItemPath.StartsWith(NeverCookDir))
+									{
+										return EVisibility::Visible;
+									}
+								}
+							}
+
+							return EVisibility::Collapsed;
+						})
+					*/
 			];
 
 		TableRowWidget->SetContent(Overlay);
